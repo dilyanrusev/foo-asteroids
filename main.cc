@@ -24,12 +24,15 @@ THE SOFTWARE.
 #include "sdl_api.h"
 #include "sdl_image_api.h"
 #include "smart_pointers.h"
+#include "helpers.h"
 #include "SDL.h"
 #include "SDL_image.h"
 #include <stdexcept>
 
 using namespace std;
 using namespace foo;
+
+void RenderBackground(SDL_Renderer *renderer, SDL_Texture *texture);
 
 int main(int argc, char** argv) {
 	SdlApi sdl_api(SDL_INIT_VIDEO);
@@ -39,8 +42,8 @@ int main(int argc, char** argv) {
 		"Foo Asteroids",
 		SDL_WINDOWPOS_CENTERED,
 		SDL_WINDOWPOS_CENTERED,
-		640,
-		480,
+		768,
+		512,
 		0));
 	if (!main_window) {
 		throw runtime_error(SDL_GetError());
@@ -54,6 +57,9 @@ int main(int argc, char** argv) {
 		throw runtime_error(SDL_GetError());
 	}
 
+	TexturePtr background(LoadTexture(
+		renderer.get(), "assets/background/darkPurple.png"));
+
 	bool is_running = true;
 	while (is_running) {
 		SDL_Event event;
@@ -65,8 +71,23 @@ int main(int argc, char** argv) {
 		}
 
 		SDL_RenderClear(renderer.get());
+
+		RenderBackground(renderer.get(), background.get());
+
 		SDL_RenderPresent(renderer.get());
 	}
 
 	return 0;
+}
+
+void RenderBackground(SDL_Renderer *renderer, SDL_Texture *texture) {
+	SDL_Rect rt = { 0, 0, 256, 256 };
+	for (int y = 0; y < 2; y++) {
+		for (int x = 0; x < 3; x++) {
+			SDL_Rect rt2 = rt;
+			rt2.x = rt.w * x;
+			rt2.y = rt.h * y;
+			SDL_RenderCopy(renderer, texture, nullptr, &rt2);
+		}
+	}
 }

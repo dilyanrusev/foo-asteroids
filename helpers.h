@@ -20,25 +20,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+#ifndef FOO_ASTEROIDS_HELPERS_H_
+#define FOO_ASTEROIDS_HELPERS_H_
+
 #include "smart_pointers.h"
-#include "SDL.h"
 
 namespace foo {
 
-void SdlWindowDeleter::operator()(SDL_Window *window) {
-	SDL_DestroyWindow(window);
-}
-
-void SdlRendererDeleter::operator()(SDL_Renderer *renderer) {
-	SDL_DestroyRenderer(renderer);
-}
-
-void SdlSurfaceDeleter::operator()(SDL_Surface *surface) {
-	SDL_FreeSurface(surface);
-}
-
-void SdlTextureDeleter::operator()(SDL_Texture *texture) {
-	SDL_DestroyTexture(texture);
-}
+TexturePtr LoadTexture(SDL_Renderer *renderer, const char *image_path);
 
 } // namespace foo
+
+#endif // FOO_ASTEROIDS_HELPERS_H_

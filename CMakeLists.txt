@@ -26,6 +26,7 @@ set (SOURCES
 	sdl_api.cc
 	sdl_image_api.cc
 	smart_pointers.cc
+	helpers.cc
 )
 
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -g")

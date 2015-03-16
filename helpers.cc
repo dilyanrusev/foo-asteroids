@@ -20,25 +20,28 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include "smart_pointers.h"
+#include "helpers.h"
 #include "SDL.h"
+#include "SDL_image.h"
+#include <stdexcept>
+
+using namespace std;
 
 namespace foo {
 
-void SdlWindowDeleter::operator()(SDL_Window *window) {
-	SDL_DestroyWindow(window);
-}
+TexturePtr LoadTexture(SDL_Renderer *renderer, const char *image_path) {
+	SurfacePtr surface(IMG_Load(image_path));
+	if (!surface) {
+		throw runtime_error(IMG_GetError());
+	}
 
-void SdlRendererDeleter::operator()(SDL_Renderer *renderer) {
-	SDL_DestroyRenderer(renderer);
-}
+	TexturePtr texture(SDL_CreateTextureFromSurface(
+		renderer, surface.get()));
+	if (!texture) {
+		throw runtime_error(SDL_GetError());
+	}
 
-void SdlSurfaceDeleter::operator()(SDL_Surface *surface) {
-	SDL_FreeSurface(surface);
-}
-
-void SdlTextureDeleter::operator()(SDL_Texture *texture) {
-	SDL_DestroyTexture(texture);
+	return move(texture);
 }
 
 } // namespace foo

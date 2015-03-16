@@ -27,6 +27,8 @@ THE SOFTWARE.
 
 struct SDL_Window;
 struct SDL_Renderer;
+struct SDL_Surface;
+struct SDL_Texture;
 
 namespace foo {
 
@@ -38,8 +40,18 @@ struct SdlRendererDeleter {
 	void operator()(SDL_Renderer *renderer);
 };
 
+struct SdlSurfaceDeleter {
+	void operator()(SDL_Surface *surface);
+};
+
+struct SdlTextureDeleter {
+	void operator()(SDL_Texture *texture);
+};
+
 using WindowPtr = std::unique_ptr<SDL_Window, SdlWindowDeleter>;
 using RendererPtr = std::unique_ptr<SDL_Renderer, SdlRendererDeleter>;
+using SurfacePtr = std::unique_ptr<SDL_Surface, SdlSurfaceDeleter>;
+using TexturePtr = std::unique_ptr<SDL_Texture, SdlTextureDeleter>;
 
 } // namespace foo
 
