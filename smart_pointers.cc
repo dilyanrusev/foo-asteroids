@@ -20,32 +20,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include <iostream>
-#include "sdl_api.h"
-#include "sdl_image_api.h"
 #include "smart_pointers.h"
 #include "SDL.h"
-#include "SDL_image.h"
-#include <stdexcept>
 
-using namespace std;
-using namespace foo;
+namespace foo {
 
-int main(int argc, char** argv) {
-	SdlApi sdl_api(SDL_INIT_VIDEO);
-	SdlImageApi sdl_image_api(IMG_INIT_PNG);
-	WindowPtr main_window(SDL_CreateWindow(
-		"Foo Asteroids",
-		SDL_WINDOWPOS_CENTERED,
-		SDL_WINDOWPOS_CENTERED,
-		640,
-		480,
-		0));
-	if (!main_window) {
-		throw runtime_error(SDL_GetError());
-	}
-
-	cout << "Hello, world!" << endl;
-
-	return 0;
+void SdlWindowDeleter::operator()(SDL_Window *window) {
+	SDL_DestroyWindow(window);
 }
+
+} // namespace foo
