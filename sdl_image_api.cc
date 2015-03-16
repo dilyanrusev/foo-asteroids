@@ -20,20 +20,22 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include <iostream>
-#include "sdl_api.h"
 #include "sdl_image_api.h"
-#include "SDL.h"
 #include "SDL_image.h"
+#include <stdexcept>
 
 using namespace std;
-using namespace foo;
 
-int main(int argc, char** argv) {
-	SdlApi sdl_api(SDL_INIT_VIDEO);
-	SdlImageApi sdl_image_api(IMG_INIT_PNG);
+namespace foo {
 
-	cout << "Hello, world!" << endl;
-
-	return 0;
+void SdlImageApiTraits::Create(int flags) {
+	if (IMG_Init(flags) != flags) {
+		throw runtime_error(IMG_GetError());
+	}
 }
+
+void SdlImageApiTraits::Destroy() {
+	IMG_Quit();
+}
+
+} // namespace foo

@@ -24,6 +24,7 @@ project(foo-asteroids)
 set (SOURCES
 	main.cc
 	sdl_api.cc
+	sdl_image_api.cc
 )
 
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -g")

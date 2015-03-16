@@ -20,20 +20,20 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include <iostream>
-#include "sdl_api.h"
-#include "sdl_image_api.h"
-#include "SDL.h"
-#include "SDL_image.h"
+#ifndef FOO_ASTEROIDS_SDL_IMAGE_API_H_
+#define FOO_ASTEROIDS_SDL_IMAGE_API_H_
 
-using namespace std;
-using namespace foo;
+#include "handle.h"
 
-int main(int argc, char** argv) {
-	SdlApi sdl_api(SDL_INIT_VIDEO);
-	SdlImageApi sdl_image_api(IMG_INIT_PNG);
+namespace foo {
 
-	cout << "Hello, world!" << endl;
+struct SdlImageApiTraits {
+	void Create(int flags);
+	void Destroy();
+};
 
-	return 0;
+using SdlImageApi = Handle<SdlImageApiTraits>;
+
 }
+
+#endif // FOO_ASTEROIDS_SDL_IMAGE_API_H_
