@@ -34,6 +34,7 @@ using namespace foo;
 int main(int argc, char** argv) {
 	SdlApi sdl_api(SDL_INIT_VIDEO);
 	SdlImageApi sdl_image_api(IMG_INIT_PNG);
+
 	WindowPtr main_window(SDL_CreateWindow(
 		"Foo Asteroids",
 		SDL_WINDOWPOS_CENTERED,
@@ -42,6 +43,14 @@ int main(int argc, char** argv) {
 		480,
 		0));
 	if (!main_window) {
+		throw runtime_error(SDL_GetError());
+	}
+
+	RendererPtr renderer(SDL_CreateRenderer(
+		main_window.get(),
+		-1,
+		SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC));
+	if (!renderer) {
 		throw runtime_error(SDL_GetError());
 	}
 

@@ -29,4 +29,8 @@ void SdlWindowDeleter::operator()(SDL_Window *window) {
 	SDL_DestroyWindow(window);
 }
 
+void SdlRendererDeleter::operator()(SDL_Renderer *renderer) {
+	SDL_DestroyRenderer(renderer);
+}
+
 } // namespace foo

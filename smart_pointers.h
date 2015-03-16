@@ -26,6 +26,7 @@ THE SOFTWARE.
 #include <memory>
 
 struct SDL_Window;
+struct SDL_Renderer;
 
 namespace foo {
 
@@ -33,7 +34,12 @@ struct SdlWindowDeleter {
 	void operator()(SDL_Window *window);
 };
 
+struct SdlRendererDeleter {
+	void operator()(SDL_Renderer *renderer);
+};
+
 using WindowPtr = std::unique_ptr<SDL_Window, SdlWindowDeleter>;
+using RendererPtr = std::unique_ptr<SDL_Renderer, SdlRendererDeleter>;
 
 } // namespace foo
 
