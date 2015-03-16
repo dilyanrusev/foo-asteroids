@@ -54,7 +54,19 @@ int main(int argc, char** argv) {
 		throw runtime_error(SDL_GetError());
 	}
 
-	cout << "Hello, world!" << endl;
+	bool is_running = true;
+	while (is_running) {
+		SDL_Event event;
+		while (SDL_PollEvent(&event)) {
+			if (event.type == SDL_QUIT) {
+				is_running = false;
+				break;
+			}
+		}
+
+		SDL_RenderClear(renderer.get());
+		SDL_RenderPresent(renderer.get());
+	}
 
 	return 0;
 }
