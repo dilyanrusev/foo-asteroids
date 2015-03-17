@@ -50,6 +50,7 @@ LoadRendererObject(
 void
 ProcessScene(
 	SDL_Renderer *renderer,
+	SDL_Window *window,
 	const Scene& scene,
 	vector<RendererObject> &renderer_objects);
 
@@ -85,7 +86,7 @@ main(int argc, char** argv) {
 	}
 
 	vector<RendererObject> renderer_objects;
-	ProcessScene(renderer.get(), main_scene, renderer_objects);
+	ProcessScene(renderer.get(), nullptr, main_scene, renderer_objects);
 
 	bool is_running = true;
 	while (is_running) {
@@ -94,6 +95,16 @@ main(int argc, char** argv) {
 			if (event.type == SDL_QUIT) {
 				is_running = false;
 				break;
+			} else if (event.type == SDL_KEYDOWN) {
+				if (event.key.repeat) continue;
+				if (event.key.keysym.sym == SDLK_F5) {
+					main_scene = LoadSceneFromFile("assets/scene.json");
+					renderer_objects.clear();
+					ProcessScene(
+						renderer.get(),
+						main_window.get(),
+						main_scene, renderer_objects);
+				}
 			}
 		}
 
@@ -110,8 +121,18 @@ main(int argc, char** argv) {
 void
 ProcessScene(
 		SDL_Renderer *renderer,
+		SDL_Window *window,
 		const Scene& scene,
 		vector<RendererObject> &renderer_objects) {
+	if (window) {
+		SDL_SetWindowTitle(window, scene.title.c_str());
+		SDL_SetWindowSize(window, scene.width, scene.height);
+		SDL_SetWindowPosition(
+			window,
+			SDL_WINDOWPOS_CENTERED,
+			SDL_WINDOWPOS_CENTERED);
+	}
+
 	for (const auto &obj: scene.objects) {
 		renderer_objects.emplace_back(
 			LoadRendererObject(renderer, obj));
