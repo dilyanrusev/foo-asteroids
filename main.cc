@@ -44,11 +44,11 @@ int main(int argc, char** argv) {
 	SdlImageApi sdl_image_api(IMG_INIT_PNG);
 
 	WindowPtr main_window(SDL_CreateWindow(
-		"Foo Asteroids",
+		main_scene.title.c_str(),
 		SDL_WINDOWPOS_CENTERED,
 		SDL_WINDOWPOS_CENTERED,
-		768,
-		512,
+		main_scene.width,
+		main_scene.height,
 		0));
 	if (!main_window) {
 		throw runtime_error(SDL_GetError());
@@ -61,9 +61,6 @@ int main(int argc, char** argv) {
 	if (!renderer) {
 		throw runtime_error(SDL_GetError());
 	}
-
-	
-
 
 	TexturePtr background(LoadTexture(
 		renderer.get(), "assets/background/darkPurple.png"));
