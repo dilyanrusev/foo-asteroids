@@ -6,7 +6,7 @@
 	"objects": [
 		{
 			"id": "background",
-			"path": "background/darkPurple.png",
+			"path": "assets/background/darkPurple.png",
 			"position": [0, 0],
 			"repeat": [3, 2]
 		}

@@ -35,9 +35,31 @@ THE SOFTWARE.
 using namespace std;
 using namespace foo;
 
-void RenderBackground(SDL_Renderer *renderer, SDL_Texture *texture);
+struct RendererObject {
+	TexturePtr texture;
+	SDL_Rect position;
+	int repeat_x;
+	int repeat_y;
+};
 
-int main(int argc, char** argv) {
+RendererObject
+LoadRendererObject(
+	SDL_Renderer *renderer,
+	const UiObject &from);
+
+void
+ProcessScene(
+	SDL_Renderer *renderer,
+	const Scene& scene,
+	vector<RendererObject> &renderer_objects);
+
+void
+RenderScene(
+	SDL_Renderer *renderer,
+	const vector<RendererObject> &renderer_objects);
+
+int
+main(int argc, char** argv) {
 	Scene main_scene = LoadSceneFromFile("assets/scene.json");
 
 	SdlApi sdl_api(SDL_INIT_VIDEO);
@@ -62,8 +84,8 @@ int main(int argc, char** argv) {
 		throw runtime_error(SDL_GetError());
 	}
 
-	TexturePtr background(LoadTexture(
-		renderer.get(), "assets/background/darkPurple.png"));
+	vector<RendererObject> renderer_objects;
+	ProcessScene(renderer.get(), main_scene, renderer_objects);
 
 	bool is_running = true;
 	while (is_running) {
@@ -77,7 +99,7 @@ int main(int argc, char** argv) {
 
 		SDL_RenderClear(renderer.get());
 
-		RenderBackground(renderer.get(), background.get());
+		RenderScene(renderer.get(), renderer_objects);
 
 		SDL_RenderPresent(renderer.get());
 	}
@@ -85,14 +107,61 @@ int main(int argc, char** argv) {
 	return 0;
 }
 
-void RenderBackground(SDL_Renderer *renderer, SDL_Texture *texture) {
-	SDL_Rect rt = { 0, 0, 256, 256 };
-	for (int y = 0; y < 2; y++) {
-		for (int x = 0; x < 3; x++) {
-			SDL_Rect rt2 = rt;
-			rt2.x = rt.w * x;
-			rt2.y = rt.h * y;
-			SDL_RenderCopy(renderer, texture, nullptr, &rt2);
+void
+ProcessScene(
+		SDL_Renderer *renderer,
+		const Scene& scene,
+		vector<RendererObject> &renderer_objects) {
+	for (const auto &obj: scene.objects) {
+		renderer_objects.emplace_back(
+			LoadRendererObject(renderer, obj));
+	}
+}
+
+void
+RenderScene(
+		SDL_Renderer *renderer,
+		const vector<RendererObject> &renderer_objects) {
+
+	for (const auto& obj: renderer_objects) {
+
+		for (int y = 0; y < obj.repeat_y; ++y) {
+			SDL_Rect rt2 = obj.position;
+			rt2.y = obj.position.y + obj.position.h * y;
+
+			for (int x = 0; x < obj.repeat_x; ++x) {
+				rt2.x = obj.position.x + obj.position.w * x;
+				SDL_RenderCopy(
+					renderer,
+					obj.texture.get(),
+					nullptr,
+					&rt2);
+			}
 		}
 	}
+}
+
+RendererObject
+LoadRendererObject(
+		SDL_Renderer *renderer,
+		const UiObject &from) {
+	SurfacePtr cpu_mem(IMG_Load(from.path.c_str()));
+	if (!cpu_mem) {
+		throw runtime_error(IMG_GetError());
+	}
+
+	RendererObject to;
+	to.position.x = from.x;
+	to.position.y = from.y;
+	to.repeat_x = from.repeat_x;
+	to.repeat_y = from.repeat_y;
+	to.position.w = cpu_mem->w;
+	to.position.h = cpu_mem->h;
+	to.texture = TexturePtr(SDL_CreateTextureFromSurface(
+		renderer, cpu_mem.get()));
+	if (!to.texture) {
+		throw runtime_error(SDL_GetError());
+	}
+
+	return move(to);
 }
