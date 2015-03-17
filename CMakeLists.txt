@@ -23,8 +23,6 @@ project(foo-asteroids)
 
 set (SOURCES
 	main.cc
-	sdl_api.cc
-	sdl_image_api.cc
 	smart_pointers.cc
 	helpers.cc
 	jsoncpp.cpp

@@ -66,10 +66,7 @@ void RenderSystem::Initialize() {
 
 	SDL_LogInfo(SDL_LOG_CATEGORY_RENDER, "Initializing RenderSystem...\n");
 
-	SDL_LogInfo(SDL_LOG_CATEGORY_RENDER, "Initializing SDL...\n");
 	sdl_api_.Create(SDL_INIT_VIDEO);
-
-	SDL_LogInfo(SDL_LOG_CATEGORY_RENDER, "Initializing SDL_image...\n");
 	sdl_image_api_.Create(IMG_INIT_PNG);
 
 	SDL_LogInfo(SDL_LOG_CATEGORY_RENDER, "RenderSystem initialized.\n");
@@ -238,6 +235,46 @@ void RenderSystem::Update(float /*elapsed_milliseconds*/) const {
 	}
 
 	SDL_RenderPresent(renderer_.get());
+}
+
+void RenderSystem::SdlApiTraits::Create(Uint32 flags) {
+	SDL_LogInfo(SDL_LOG_CATEGORY_RENDER, "Initializing SDL...\n");
+
+	if (SDL_Init(flags) != 0) {
+		auto error_message = SDL_GetError();
+		SDL_LogError(SDL_LOG_CATEGORY_RENDER,
+			"Failed to initialize SDL: %s\n",
+			error_message);
+		throw runtime_error(error_message);
+	}
+}
+
+void RenderSystem::SdlApiTraits::Destroy() {
+	SDL_LogInfo(
+		SDL_LOG_CATEGORY_RENDER,
+		"Quitting SDL...");
+
+	SDL_Quit();
+}
+
+void RenderSystem::SdlImageApiTraits::Create(int flags) {
+	SDL_LogInfo(SDL_LOG_CATEGORY_RENDER, "Initializing SDL_image...\n");
+
+	if (IMG_Init(flags) != flags) {
+		auto error_message = IMG_GetError();
+		SDL_LogError(SDL_LOG_CATEGORY_RENDER,
+			"Failed to initialize SDL_image: %s\n",
+			error_message);
+		throw runtime_error(error_message);
+	}
+}
+
+void RenderSystem::SdlImageApiTraits::Destroy() {
+	SDL_LogInfo(
+		SDL_LOG_CATEGORY_RENDER,
+		"Quitting SDL_image...");
+
+	IMG_Quit();
 }
 
 } // namespace foo

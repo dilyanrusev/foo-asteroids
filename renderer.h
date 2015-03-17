@@ -24,8 +24,7 @@ THE SOFTWARE.
 #define FOO_ASTEROIDS_RENDERER_H_
 
 #include "scene.h"
-#include "sdl_api.h"
-#include "sdl_image_api.h"
+#include "handle.h"
 #include "smart_pointers.h"
 #include "SDL_rect.h"
 #include <vector>
@@ -46,8 +45,17 @@ struct RepeatedTextureNode : public TextureNode {
 };
 
 class RenderSystem {
-	SdlApi sdl_api_;
-	SdlImageApi sdl_image_api_;
+	struct SdlApiTraits {
+		void Create(unsigned int flags);
+		void Destroy();
+	};
+	struct SdlImageApiTraits {
+		void Create(int flags);
+		void Destroy();
+	};
+
+	Handle<SdlApiTraits> sdl_api_;
+	Handle<SdlImageApiTraits> sdl_image_api_;
 	WindowPtr window_;
 	RendererPtr renderer_;
 	std::vector<TextureNode> textures_;
