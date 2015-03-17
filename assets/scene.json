@@ -5,6 +5,7 @@
 	"title": "Foo Asteroids",
 	"objects": [
 		{
+			"type": "repeated_texture",
 			"id": "background",
 			"path": "assets/background/darkPurple.png",
 			"position": [0, 0],

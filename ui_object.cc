@@ -22,20 +22,40 @@ THE SOFTWARE.
 
 #include "ui_object.h"
 #include "json/json.h"
+#include <stdexcept>
+
+using namespace std;
 
 namespace foo {
 
 void LoadUiObject(const Json::Value &in, UiObject &out) {
-	out.id = in["id"].asString();
+	const Json::Value &json_id = in["id"];
+	if (!json_id.isNull()) {
+		out.id = json_id.asString();
+	}
+
 	out.path = in["path"].asString();
 
 	const Json::Value &json_pos = in["position"];
 	out.x = json_pos[0].asInt();
 	out.y = json_pos[1].asInt();
 
-	const Json::Value &json_repeat = in["repeat"];
-	out.repeat_x = json_repeat[0].asInt();
-	out.repeat_y = json_repeat[1].asInt();
+	const string& type_name = in["type"].asString();
+	if (type_name == "texture") {
+		out.type = kSceneObjectTexture;
+		out.repeat_x = 1;
+		out.repeat_y = 1;
+	} else if (type_name == "repeated_texture") {
+		out.type = kSceneObjectRepeatedTexture;
+
+		const Json::Value &json_repeat = in["repeat"];
+		out.repeat_x = json_repeat[0].asInt();
+		out.repeat_y = json_repeat[1].asInt();
+	} else {
+		throw runtime_error(
+			string("unknown scene object type: ")
+			+ type_name);
+	}
 }
 
 } // namespace foo

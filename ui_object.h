@@ -28,7 +28,14 @@ THE SOFTWARE.
 
 namespace foo {
 
+enum SceneObjectKind {
+	kSceneObjectTexture,
+	kSceneObjectRepeatedTexture,
+	kCountSceneObjects
+};
+
 struct UiObject {
+	SceneObjectKind type;
 	std::string id;
 	std::string path;
 	int x;
