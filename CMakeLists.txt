@@ -23,6 +23,7 @@ project(foo-asteroids)
 
 set (SOURCES
 	jsoncpp.cpp
+	tinyxml2.cpp
 	smart_pointers.cc
 	scene.cc
 	renderer.cc
