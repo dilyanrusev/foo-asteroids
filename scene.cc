@@ -48,8 +48,8 @@ void LoadScene(const Json::Value &in, Scene &out) {
 		i < json_objects.size();
 		++i) {
 		const Json::Value &json_object = json_objects[i];
-		UiObject ui_object;
-		LoadUiObject(json_object, ui_object);
+		SceneObject ui_object;
+		LoadSceneObject(json_object, ui_object);
 		out.objects.push_back(ui_object);
 	}
 }

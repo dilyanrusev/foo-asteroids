@@ -34,7 +34,7 @@ enum SceneObjectKind {
 	kCountSceneObjects
 };
 
-struct UiObject {
+struct SceneObject {
 	SceneObjectKind type;
 	std::string id;
 	std::string path;
@@ -44,7 +44,7 @@ struct UiObject {
 	int repeat_y;
 };
 
-void LoadUiObject(const Json::Value &in, UiObject &out);
+void LoadSceneObject(const Json::Value &in, SceneObject &out);
 
 } // namespace foo
 

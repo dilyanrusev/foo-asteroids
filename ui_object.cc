@@ -28,7 +28,7 @@ using namespace std;
 
 namespace foo {
 
-void LoadUiObject(const Json::Value &in, UiObject &out) {
+void LoadSceneObject(const Json::Value &in, SceneObject &out) {
 	const Json::Value &json_id = in["id"];
 	if (!json_id.isNull()) {
 		out.id = json_id.asString();

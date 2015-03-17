@@ -152,7 +152,7 @@ void RenderSystem::ProcessScene(
 void
 RenderSystem::ProcessSceneNodeCommon(
 		TextureNode &node,
-	    const UiObject &scene_object) const {
+	    const SceneObject &scene_object) const {
 	SDL_LogInfo(
 		SDL_LOG_CATEGORY_RENDER,
 		"Loading %s...\n",
@@ -185,7 +185,7 @@ RenderSystem::ProcessSceneNodeCommon(
 
 TextureNode
 RenderSystem::ProcessTextureNode(
-		const UiObject &scene_object) const {
+		const SceneObject &scene_object) const {
 	SDL_LogInfo(SDL_LOG_CATEGORY_RENDER, "Processing texture node...\n");
 
 	TextureNode to;
@@ -195,7 +195,7 @@ RenderSystem::ProcessTextureNode(
 
 RepeatedTextureNode
 RenderSystem::ProcessRepeteadTextureNode(
-		const UiObject &scene_object) const {
+		const SceneObject &scene_object) const {
 	SDL_LogInfo(
 		SDL_LOG_CATEGORY_RENDER,
 		"Processing repeated texture node...\n");

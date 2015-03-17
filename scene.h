@@ -30,19 +30,19 @@ THE SOFTWARE.
 
 struct SDL_Renderer;
 
-namespace foo {
+namespace  {
 
 struct Scene {
 	std::string id;
 	std::string title;
 	int width;
 	int height;
-	std::vector<UiObject> objects;
+	std::vector<SceneObject> objects;
 };
 
 Scene LoadSceneFromFile(const char *file_name);
 void LoadScene(const Json::Value &in, Scene &out);
 
-} // namespace foo
+} // namespace 
 
 #endif // FOO_ASTEROIDS_SCENE_H_
