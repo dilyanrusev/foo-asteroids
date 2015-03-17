@@ -24,6 +24,8 @@ THE SOFTWARE.
 #define FOO_ASTEROIDS_RENDERER_H_
 
 #include "scene.h"
+#include "sdl_api.h"
+#include "sdl_image_api.h"
 #include "smart_pointers.h"
 #include "SDL_rect.h"
 #include <vector>
@@ -44,6 +46,10 @@ struct RepeatedTextureNode : public TextureNode {
 };
 
 class RenderSystem {
+	SdlApi sdl_api_;
+	SdlImageApi sdl_image_api_;
+	WindowPtr window_;
+	RendererPtr renderer_;
 	std::vector<TextureNode> textures_;
 	std::vector<RepeatedTextureNode> repeated_textures_;
 
@@ -61,25 +67,23 @@ public:
 		swap(lhs.repeated_textures_, rhs.repeated_textures_);
 	}
 
-	void ProcessScene(SDL_Renderer *renderer, const Scene &scene);
-	void Render(SDL_Renderer *renderer) const;
+	void Initialize();
+	void ProcessScene(const Scene &scene);
+	void Update(float elapsed_milliseconds) const;
 
 private:
-	static void
+	void
 	ProcessSceneNodeCommon(
-		SDL_Renderer *renderer,
 		TextureNode &node,
-	    const UiObject &scene_object);
+	    const UiObject &scene_object) const;
 
-	static TextureNode
+	TextureNode
 	ProcessTextureNode(
-		SDL_Renderer *renderer,
-		const UiObject &scene_object);
+		const UiObject &scene_object) const;
 
-	static RepeatedTextureNode
+	RepeatedTextureNode
 	ProcessRepeteadTextureNode(
-		SDL_Renderer *renderer,
-		const UiObject &scene_object);
+		const UiObject &scene_object) const;
 };
 
 } // namespace foo

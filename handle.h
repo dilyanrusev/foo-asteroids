@@ -33,9 +33,13 @@ class Handle {
 	bool initialized_;
 
 public:
+	Handle() :initialized_(false) {}
+
 	template<typename... Args>
-	Handle(Args&&... args) : initialized_(false) {
-		traits_.Create(std::forward<Args>(args)...);
+	Handle(bool create, Args&&... args) : initialized_(false) {
+		if (create) {
+			traits_.Create(std::forward<Args>(args)...);
+		}
 		initialized_ = true;
 	}
 
