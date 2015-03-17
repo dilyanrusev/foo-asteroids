@@ -7,7 +7,7 @@
 		{
 			"type": "repeated_texture",
 			"id": "background",
-			"path": "assets/background/darkPurple.png",
+			"path": "background/darkPurple.png",
 			"position": [0, 0],
 			"repeat": [3, 2]
 		}

@@ -55,6 +55,15 @@ void Scene::LoadFromFile(const char *file_name) {
 		"Loading scene from %s...\n",
 		file_name);
 
+	string path(file_name);
+	size_t last_separator = path.find_last_of('\\');
+	if (string::npos == last_separator) {
+		last_separator = path.find_last_of('/');
+	}
+	if (string::npos != last_separator) {
+		path.erase(last_separator + 1, string::npos);
+	}
+
 	textures_.clear();
 	repeated_textures_.clear();
 
@@ -80,10 +89,10 @@ void Scene::LoadFromFile(const char *file_name) {
 
 		if (type == "texture") {
 			textures_.emplace_back(
-				LoadTexture(json_object));
+				LoadTexture(path.c_str(), json_object));
 		} else if (type == "repeated_texture") {
 			repeated_textures_.emplace_back(
-				LoadRepeatedTexture(json_object));
+				LoadRepeatedTexture(path.c_str(), json_object));
 		}
 		else {
 			SDL_LogWarn(
@@ -96,6 +105,7 @@ void Scene::LoadFromFile(const char *file_name) {
 }
 
 void Scene::LoadTextureCommon(
+		const char *scene_file_name,
 		const Json::Value &in,
 		SceneObjectTexture &out) const {
 	const Json::Value &json_id = in["id"];
@@ -103,7 +113,7 @@ void Scene::LoadTextureCommon(
 		out.id = json_id.asString();
 	}
 
-	out.path = in["path"].asString();
+	out.path = string(scene_file_name) + in["path"].asString();
 
 	const Json::Value &json_pos = in["position"];
 	out.x = json_pos[0].asInt();
@@ -111,23 +121,27 @@ void Scene::LoadTextureCommon(
 }
 
 SceneObjectTexture
-Scene::LoadTexture(const Json::Value &in) const {
+Scene::LoadTexture(
+		const char *scene_file_name,
+		const Json::Value &in) const {
 	SDL_LogInfo(SDL_LOG_CATEGORY_SYSTEM, "Loading texture...\n");
 
 	SceneObjectTexture out;
 
-	LoadTextureCommon(in, out);
+	LoadTextureCommon(scene_file_name, in, out);
 
 	return move(out);
 }
 
 SceneObjectRepeatedTexture
-Scene::LoadRepeatedTexture(const Json::Value &in) const {
+Scene::LoadRepeatedTexture(
+		const char *scene_file_name,
+		const Json::Value &in) const {
 	SDL_LogInfo(SDL_LOG_CATEGORY_SYSTEM, "Loading repeated texture...\n");
 
 	SceneObjectRepeatedTexture out;
 
-	LoadTextureCommon(in, out);
+	LoadTextureCommon(scene_file_name, in, out);
 
 	const Json::Value &json_repeat = in["repeat"];
 	out.repeat_x = json_repeat[0].asInt();

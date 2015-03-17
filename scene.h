@@ -95,14 +95,19 @@ public:
 private:
 	void
 	LoadTextureCommon(
+		const char *scene_file_name,
 		const Json::Value &in,
 		SceneObjectTexture &out) const;
 
 	SceneObjectTexture
-	LoadTexture(const Json::Value &in) const;
+	LoadTexture(
+		const char *scene_file_name,
+		const Json::Value &in) const;
 
 	SceneObjectRepeatedTexture
-	LoadRepeatedTexture(const Json::Value &in) const;
+	LoadRepeatedTexture(
+		const char *scene_file_name,
+		const Json::Value &in) const;
 };
 
 } // namespace foo
