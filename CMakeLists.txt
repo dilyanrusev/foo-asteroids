@@ -28,6 +28,8 @@ set (SOURCES
 	smart_pointers.cc
 	helpers.cc
 	jsoncpp.cpp
+	scene.cc
+	ui_object.cc
 )
 
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -g")

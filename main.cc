@@ -21,6 +21,7 @@ THE SOFTWARE.
 */
 
 #include <iostream>
+#include <fstream>
 #include "sdl_api.h"
 #include "sdl_image_api.h"
 #include "smart_pointers.h"
@@ -28,6 +29,8 @@ THE SOFTWARE.
 #include "SDL.h"
 #include "SDL_image.h"
 #include <stdexcept>
+#include "scene.h"
+#include "ui_object.h"
 
 using namespace std;
 using namespace foo;
@@ -35,6 +38,8 @@ using namespace foo;
 void RenderBackground(SDL_Renderer *renderer, SDL_Texture *texture);
 
 int main(int argc, char** argv) {
+	Scene main_scene = LoadSceneFromFile("assets/scene.json");
+
 	SdlApi sdl_api(SDL_INIT_VIDEO);
 	SdlImageApi sdl_image_api(IMG_INIT_PNG);
 
@@ -56,6 +61,9 @@ int main(int argc, char** argv) {
 	if (!renderer) {
 		throw runtime_error(SDL_GetError());
 	}
+
+	
+
 
 	TexturePtr background(LoadTexture(
 		renderer.get(), "assets/background/darkPurple.png"));
