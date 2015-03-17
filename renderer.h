@@ -83,15 +83,15 @@ private:
 	void
 	ProcessSceneNodeCommon(
 		TextureNode &node,
-	    const SceneObject &scene_object) const;
+	    const SceneObjectTexture &scene_object) const;
 
 	TextureNode
 	ProcessTextureNode(
-		const SceneObject &scene_object) const;
+		const SceneObjectTexture &scene_object) const;
 
 	RepeatedTextureNode
 	ProcessRepeteadTextureNode(
-		const SceneObject &scene_object) const;
+		const SceneObjectRepeatedTexture &scene_object) const;
 };
 
 } // namespace foo

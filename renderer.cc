@@ -85,8 +85,8 @@ void RenderSystem::ProcessScene(
 			SDL_LOG_CATEGORY_RENDER,
 			"Updating window...\n");
 
-		SDL_SetWindowTitle(window_.get(), scene.title.c_str());
-		SDL_SetWindowSize(window_.get(), scene.width, scene.height);
+		SDL_SetWindowTitle(window_.get(), scene.title().c_str());
+		SDL_SetWindowSize(window_.get(), scene.width(), scene.height());
 		SDL_SetWindowPosition(
 			window_.get(),
 			SDL_WINDOWPOS_CENTERED,
@@ -97,11 +97,11 @@ void RenderSystem::ProcessScene(
 			"Creating window...\n");
 
 		window_ = WindowPtr(SDL_CreateWindow(
-			scene.title.c_str(),
+			scene.title().c_str(),
 			SDL_WINDOWPOS_CENTERED,
 			SDL_WINDOWPOS_CENTERED,
-			scene.width,
-			scene.height,
+			scene.width(),
+			scene.height(),
 			0));
 		if (!window_) {
 			auto error_message = SDL_GetError();
@@ -130,29 +130,21 @@ void RenderSystem::ProcessScene(
 		}
 	}
 
-	for (const auto &scene_object: scene.objects) {
-		switch (scene_object.type) {
-		case kSceneObjectTexture:
-			textures_.emplace_back(
-				ProcessTextureNode(scene_object));
-			break;
+	for (const auto &scene_object: scene.textures()) {
+		textures_.emplace_back(
+			ProcessTextureNode(scene_object));
+	}
 
-		case kSceneObjectRepeatedTexture:
-			repeated_textures_.emplace_back(
-				ProcessRepeteadTextureNode(scene_object));
-			break;
-
-		default:
-			SDL_LogInfo(SDL_LOG_CATEGORY_RENDER, "skipping node\n");
-			break;
-		}
+	for (const auto &scene_object: scene.repeated_textures()) {
+		repeated_textures_.emplace_back(
+			ProcessRepeteadTextureNode(scene_object));
 	}
 }
 
 void
 RenderSystem::ProcessSceneNodeCommon(
 		TextureNode &node,
-	    const SceneObject &scene_object) const {
+	    const SceneObjectTexture &scene_object) const {
 	SDL_LogInfo(
 		SDL_LOG_CATEGORY_RENDER,
 		"Loading %s...\n",
@@ -185,7 +177,7 @@ RenderSystem::ProcessSceneNodeCommon(
 
 TextureNode
 RenderSystem::ProcessTextureNode(
-		const SceneObject &scene_object) const {
+		const SceneObjectTexture &scene_object) const {
 	SDL_LogInfo(SDL_LOG_CATEGORY_RENDER, "Processing texture node...\n");
 
 	TextureNode to;
@@ -195,7 +187,7 @@ RenderSystem::ProcessTextureNode(
 
 RepeatedTextureNode
 RenderSystem::ProcessRepeteadTextureNode(
-		const SceneObject &scene_object) const {
+		const SceneObjectRepeatedTexture &scene_object) const {
 	SDL_LogInfo(
 		SDL_LOG_CATEGORY_RENDER,
 		"Processing repeated texture node...\n");

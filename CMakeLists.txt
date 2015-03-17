@@ -22,12 +22,11 @@ cmake_minimum_required(VERSION 2.8)
 project(foo-asteroids)
 
 set (SOURCES
-	main.cc
-	smart_pointers.cc
 	jsoncpp.cpp
+	smart_pointers.cc
 	scene.cc
-	ui_object.cc
 	renderer.cc
+	main.cc
 )
 
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -g")

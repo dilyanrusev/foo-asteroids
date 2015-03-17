@@ -33,10 +33,11 @@ ProcessScene(
 
 int
 main(int argc, char** argv) {
-	Scene main_scene = LoadSceneFromFile("assets/scene.json");
 	RenderSystem render_system;
+	Scene main_scene;
 
 	render_system.Initialize();
+	main_scene.LoadFromFile("assets/scene.json");
 	ProcessScene(main_scene, render_system);
 
 	bool is_running = true;
@@ -49,7 +50,7 @@ main(int argc, char** argv) {
 			} else if (event.type == SDL_KEYDOWN) {
 				if (event.key.repeat) continue;
 				if (event.key.keysym.sym == SDLK_F5) {
-					main_scene = LoadSceneFromFile("assets/scene.json");
+					main_scene.LoadFromFile("assets/scene.json");
 					ProcessScene(main_scene, render_system);
 				}
 			}

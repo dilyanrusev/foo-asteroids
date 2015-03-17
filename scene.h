@@ -25,24 +25,86 @@ THE SOFTWARE.
 
 #include <string>
 #include <vector>
+#include <utility>
 #include "json/json-forwards.h"
-#include "ui_object.h"
 
 struct SDL_Renderer;
 
-namespace  {
+namespace foo {
 
-struct Scene {
+struct SceneObjectTexture {
 	std::string id;
-	std::string title;
-	int width;
-	int height;
-	std::vector<SceneObject> objects;
+	std::string path;
+	int x;
+	int y;
 };
 
-Scene LoadSceneFromFile(const char *file_name);
-void LoadScene(const Json::Value &in, Scene &out);
+struct SceneObjectRepeatedTexture : public SceneObjectTexture {
+	int repeat_x;
+	int repeat_y;
+};
 
-} // namespace 
+class Scene {
+	std::string id_;
+	std::string title_;
+	int width_;
+	int height_;
+	std::vector<SceneObjectTexture> textures_;
+	std::vector<SceneObjectRepeatedTexture> repeated_textures_;
+
+public:
+	Scene();
+	Scene(const Scene&) = delete;
+	Scene(Scene &&other);
+	~Scene();
+
+	Scene& operator=(const Scene&) = delete;
+	Scene& operator=(Scene &&other);
+	friend void swap(Scene &lhs, Scene &rhs) {
+		using std::swap;
+
+		swap(lhs.id_, rhs.id_);
+		swap(lhs.title_, rhs.title_);
+		swap(lhs.width_, rhs.width_);
+		swap(lhs.height_, rhs.height_);
+		swap(lhs.textures_, rhs.textures_);
+		swap(lhs.repeated_textures_, rhs.repeated_textures_);
+	}
+
+	void
+	LoadFromFile(const char *file_name);
+
+	inline const std::string&
+	id() const { return id_; }
+
+	inline const std::string&
+	title() const { return title_; }
+
+	inline int
+	width() const { return width_; }
+
+	inline int
+	height() const { return height_; }
+
+	inline const std::vector<SceneObjectTexture>&
+	textures() const { return textures_; }
+
+	inline const std::vector<SceneObjectRepeatedTexture>&
+	repeated_textures() const { return repeated_textures_; }
+
+private:
+	void
+	LoadTextureCommon(
+		const Json::Value &in,
+		SceneObjectTexture &out) const;
+
+	SceneObjectTexture
+	LoadTexture(const Json::Value &in) const;
+
+	SceneObjectRepeatedTexture
+	LoadRepeatedTexture(const Json::Value &in) const;
+};
+
+} // namespace foo
 
 #endif // FOO_ASTEROIDS_SCENE_H_
