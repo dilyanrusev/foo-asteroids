@@ -24,7 +24,6 @@ project(foo-asteroids)
 set (SOURCES
 	main.cc
 	smart_pointers.cc
-	helpers.cc
 	jsoncpp.cpp
 	scene.cc
 	ui_object.cc
