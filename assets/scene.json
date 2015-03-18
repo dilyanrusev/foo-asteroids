@@ -17,12 +17,28 @@
 	],
 	"objects": [
 		{
-			"type": "repeated_texture",
 			"id": "background",
-			"texture": "background",
-			"path": "background/darkPurple.png",
 			"position": [0, 0],
-			"repeat": [3, 2]
+			"components": [
+				{
+					"type": "texture",
+					"texture_id": "background",
+				},
+				{
+					"type": "texture_repeat",
+					"repeat": [3, 2]
+				}
+			]
+		},
+		{
+			"id": "ship",
+			"position": [10, 10],
+			"components": [
+				{
+					"type": "texture",
+					"texture_id": "sheet.playerShip1_orange.png"
+				}
+			]
 		}
 	]
 }
