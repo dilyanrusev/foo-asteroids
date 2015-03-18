@@ -111,6 +111,11 @@ void Scene::ProcessSpritesheets(
 void Scene::ProcessTextureAtlasXml(
 		const string &prefix,
 		SceneSpritesheet &out) const {
+	SDL_LogInfo(
+		SDL_LOG_CATEGORY_SYSTEM,
+		"Processing XML texture atlas %s...\n",
+		out.path.c_str());
+
 	using namespace tinyxml2;
 
 	out.regions.clear();
@@ -188,11 +193,17 @@ void Scene::ProcessTextureAtlasXml(
 
 		out.regions.emplace_back(move(region));
 	}
+
+	SDL_LogInfo(
+		SDL_LOG_CATEGORY_SYSTEM,
+		"Processed %d SubTexture-s.\n",
+		out.regions.size());
 }
 
 void Scene::ProcessSceneObjects(
 		const string &prefix,
 		const Json::Value &in) {
+	SDL_LogInfo(SDL_LOG_CATEGORY_SYSTEM, "Processing scene objects...\n");
 	texture_objects_.clear();
 	repeated_texture_objects_.clear();
 
