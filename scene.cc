@@ -44,8 +44,7 @@ Scene& Scene::operator=(Scene &&other) {
 		title_.clear();
 		textures_.clear();
 		spritesheets_.clear();
-		texture_objects_.clear();
-		repeated_texture_objects_.clear();
+		objects_.clear();
 
 		swap(*this, other);
 	}
@@ -80,16 +79,43 @@ void Scene::LoadFromFile(const char *file_name) {
 	width_ = in["width"].asInt();
 	height_ = in["height"].asInt();
 
-	const auto &json_spritesheets = in["spritesheets"];
-	ProcessSpritesheets(prefix, json_spritesheets);
+	ProcessSpritesheets(prefix, in["spritesheets"]);
+	ProcessTextures(prefix, in["textures"]);
+	ProcessSceneObjects(prefix, in["objects"]);
+}
 
-	const auto &json_objects = in["objects"];
-	ProcessSceneObjects(prefix, json_objects);
+void Scene::ProcessTextures(
+		const string &prefix,
+		const Json::Value &in) {
+	SDL_LogInfo(
+		SDL_LOG_CATEGORY_SYSTEM,
+		"Processing scene textures...\n");
+
+	textures_.clear();
+
+	if (in.isNull() || !in.isArray()) {
+		return;
+	}
+
+	for (Json::Value::ArrayIndex i = 0;
+		i < in.size();
+		++i) {
+		const auto &json_object = in[i];
+
+		SceneTexture texture;
+		texture.id = json_object["id"].asString();
+		texture.path = prefix + json_object["path"].asString();
+		textures_.emplace_back(std::move(texture));
+	}
 }
 
 void Scene::ProcessSpritesheets(
 		const string &prefix,
 		const Json::Value &in) {
+	SDL_LogInfo(
+		SDL_LOG_CATEGORY_SYSTEM,
+		"Processing scene spritesheets...\n");
+
 	spritesheets_.clear();
 
 	if (in.isNull() || !in.isArray()) {
@@ -204,8 +230,7 @@ void Scene::ProcessSceneObjects(
 		const string &prefix,
 		const Json::Value &in) {
 	SDL_LogInfo(SDL_LOG_CATEGORY_SYSTEM, "Processing scene objects...\n");
-	texture_objects_.clear();
-	repeated_texture_objects_.clear();
+	objects_.clear();
 
 	if (in.isNull() || !in.isArray()) {
 		return;
@@ -215,69 +240,89 @@ void Scene::ProcessSceneObjects(
 		i < in.size();
 		++i) {
 		const auto &json_object = in[i];
-		const auto &type = json_object["type"].asString();
 
-		if (type == "texture") {
-			texture_objects_.emplace_back(
-				LoadTexture(prefix, json_object));
-		} else if (type == "repeated_texture") {
-			repeated_texture_objects_.emplace_back(
-				LoadRepeatedTexture(prefix, json_object));
-		}
-		else {
+		SceneObject object;
+		object.id = json_object["id"].asString();
+		if (!object.id.size()) {
 			SDL_LogWarn(
 				SDL_LOG_CATEGORY_SYSTEM,
-				"Unrecognized scene object type: %s\n",
-				type.c_str());
+				"Empty object id: skipping\n");
 			continue;
 		}
+
+		const auto &json_position = json_object["position"];
+		if (json_position.isNull()
+			|| !json_position.isArray()
+			|| 2 != json_position.size()
+			|| !json_position[0].isInt()
+			|| !json_position[1].isInt()) {
+			SDL_LogWarn(
+				SDL_LOG_CATEGORY_SYSTEM,
+				"Missing or malformatted position for %s: skipping\n",
+				object.id.c_str());
+			continue;
+		}
+		object.x = json_position[0].asInt();
+		object.y = json_position[1].asInt();
+
+		ProcessObjectComponents(prefix, json_object["components"], object);
+
+		objects_.emplace_back(move(object));
 	}
 }
 
-void Scene::LoadTextureCommon(
+void Scene::ProcessObjectComponents(
 		const string &prefix,
 		const Json::Value &in,
-		SceneObjectTexture &out) const {
-	const Json::Value &json_id = in["id"];
-	if (!json_id.isNull()) {
-		out.id = json_id.asString();
+		SceneObject &out) const {
+	if (in.isNull()) {
+		return;
 	}
 
-	out.path = prefix + in["path"].asString();
+	for (Json::Value::ArrayIndex i = 0;
+		i < in.size();
+		++i) {
+		const auto &json_object = in[i];
 
-	const auto &json_pos = in["position"];
-	out.x = json_pos[0].asInt();
-	out.y = json_pos[1].asInt();
-}
+		const auto &json_type = json_object["type"];
+		if (json_type.isNull() || !json_type.isString()) {
+			SDL_LogWarn(
+				SDL_LOG_CATEGORY_SYSTEM,
+				"Missing or malformatted component type for"
+				" %s: skipping\n",
+				out.id.c_str());
+			continue;
+		}
+		const auto &type = json_type.asString();
 
-SceneObjectTexture
-Scene::LoadTexture(
-		const string &prefix,
-		const Json::Value &in) const {
-	SDL_LogInfo(SDL_LOG_CATEGORY_SYSTEM, "Loading texture...\n");
+		if (type == "texture") {
+			if (out.texture) {
+				SDL_LogWarn(
+					SDL_LOG_CATEGORY_SYSTEM,
+					"Redefined texture component for %s: ignoring\n",
+					out.id.c_str());
+				continue;
+			}
 
-	SceneObjectTexture out;
+			out.texture = ProcessTextureComponent(json_object);
+		} else if (type == "texture_repeat") {
+			if (out.texture_repeat) {
+				SDL_LogWarn(
+					SDL_LOG_CATEGORY_SYSTEM,
+					"Redefined texture_repeat component for %s: ignoring\n",
+					out.id.c_str());
+				continue;
+			}
 
-	LoadTextureCommon(prefix, in, out);
-
-	return move(out);
-}
-
-SceneObjectRepeatedTexture
-Scene::LoadRepeatedTexture(
-		const string &prefix,
-		const Json::Value &in) const {
-	SDL_LogInfo(SDL_LOG_CATEGORY_SYSTEM, "Loading repeated texture...\n");
-
-	SceneObjectRepeatedTexture out;
-
-	LoadTextureCommon(prefix, in, out);
-
-	const auto &json_repeat = in["repeat"];
-	out.repeat_x = json_repeat[0].asInt();
-	out.repeat_y = json_repeat[1].asInt();
-
-	return move(out);
+			out.texture_repeat = ProcessTextureRepeatComponent(json_object);
+		} else {
+			SDL_LogWarn(
+				SDL_LOG_CATEGORY_SYSTEM,
+				"Unknown component type %s for %s: ignoring\n",
+				type.c_str(),
+				out.id.c_str());
+		}
+	}
 }
 
 } // namespace foo

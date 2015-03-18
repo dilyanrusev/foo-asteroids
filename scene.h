@@ -26,9 +26,8 @@ THE SOFTWARE.
 #include <string>
 #include <vector>
 #include <utility>
+#include <memory>
 #include "json/json-forwards.h"
-
-struct SDL_Renderer;
 
 namespace foo {
 
@@ -52,16 +51,21 @@ struct SceneTexture {
 	std::string path;
 };
 
-struct SceneObjectTexture {
-	std::string id;
-	std::string path;
-	int x;
-	int y;
+struct SceneComponentTexture {
+	std::string texture_id;
 };
 
-struct SceneObjectRepeatedTexture : public SceneObjectTexture {
+struct SceneComponentTextureRepeat {
 	int repeat_x;
 	int repeat_y;
+};
+
+struct SceneObject {
+	std::string id;
+	int x;
+	int y;
+	std::unique_ptr<SceneComponentTexture> texture;
+	std::unique_ptr<SceneComponentTextureRepeat> texture_repeat;
 };
 
 class Scene {
@@ -71,8 +75,7 @@ class Scene {
 	int height_;
 	std::vector<SceneTexture> textures_;
 	std::vector<SceneSpritesheet> spritesheets_;
-	std::vector<SceneObjectTexture> texture_objects_;
-	std::vector<SceneObjectRepeatedTexture> repeated_texture_objects_;
+	std::vector<SceneObject> objects_;
 
 public:
 	Scene();
@@ -91,8 +94,7 @@ public:
 		swap(lhs.height_, rhs.height_);
 		swap(lhs.textures_, rhs.textures_);
 		swap(lhs.spritesheets_, rhs.spritesheets_);
-		swap(lhs.texture_objects_, rhs.texture_objects_);
-		swap(lhs.repeated_texture_objects_, rhs.repeated_texture_objects_);
+		swap(lhs.objects_, rhs.objects_);
 	}
 
 	void
@@ -110,33 +112,32 @@ public:
 	inline int
 	height() const { return height_; }
 
-	inline const std::vector<SceneObjectTexture>&
-	texture_objects() const { return texture_objects_; }
+	inline const std::vector<SceneTexture>&
+	textures() const { return textures_; }
 
-	inline const std::vector<SceneObjectRepeatedTexture>&
-	repeated_texture_objects() const { return repeated_texture_objects_; }
+	inline const std::vector<SceneSpritesheet>&
+	spritesheets() const { return spritesheets_; }
+
+	inline const std::vector<SceneObject>&
+	objects() const { return objects_; }
 
 private:
-	void
-	LoadTextureCommon(
-		const std::string &prefix,
-		const Json::Value &in,
-		SceneObjectTexture &out) const;
-
-	SceneObjectTexture
-	LoadTexture(
-		const std::string &prefix,
-		const Json::Value &in) const;
-
-	SceneObjectRepeatedTexture
-	LoadRepeatedTexture(
-		const std::string &prefix,
-		const Json::Value &in) const;
-
 	void
 	ProcessSceneObjects(
 		const std::string &prefix,
 		const Json::Value &in);
+
+	void
+	ProcessObjectComponents(
+		const std::string &prefix,
+		const Json::Value &in,
+		SceneObject &out) const;
+
+	std::unique_ptr<SceneComponentTexture>
+	ProcessTextureComponent(const Json::Value &in) const;
+
+	std::unique_ptr<SceneComponentTextureRepeat>
+	ProcessTextureRepeatComponent(const Json::Value &in) const;
 
 	void
 	ProcessSpritesheets(
@@ -147,6 +148,10 @@ private:
 	ProcessTextureAtlasXml(
 		const std::string &prefix,
 		SceneSpritesheet &out) const;
+
+	void ProcessTextures(
+		const std::string &prefix,
+		const Json::Value &in);
 };
 
 } // namespace foo
