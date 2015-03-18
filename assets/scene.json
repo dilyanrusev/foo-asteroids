@@ -22,7 +22,7 @@
 			"components": [
 				{
 					"type": "texture",
-					"texture_id": "background",
+					"texture_id": "background"
 				},
 				{
 					"type": "texture_repeat",
