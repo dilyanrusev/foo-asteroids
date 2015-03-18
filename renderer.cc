@@ -31,12 +31,7 @@ namespace foo {
 RenderSystem::RenderSystem() {}
 
 RenderSystem::RenderSystem(RenderSystem &&other) {
-	swap(sdl_api_, other.sdl_api_);
-	swap(sdl_image_api_, other.sdl_image_api_);
-	swap(window_, other.window_);
-	swap(renderer_, other.renderer_);
-	swap(textures_, other.textures_);
-	swap(repeated_textures_, other.repeated_textures_);
+	swap(*this, other);
 }
 
 RenderSystem::~RenderSystem() {}
@@ -50,12 +45,7 @@ RenderSystem& RenderSystem::operator=(RenderSystem &&other) {
 		window_.reset();
 		renderer_.reset();
 
-		swap(sdl_api_, other.sdl_api_);
-		swap(sdl_image_api_, other.sdl_image_api_);
-		swap(window_, other.window_);
-		swap(renderer_, other.renderer_);
-		swap(textures_, other.textures_);
-		swap(repeated_textures_, other.repeated_textures_);
+		swap(*this, other);
 	}
 
 	return *this;
@@ -130,12 +120,12 @@ void RenderSystem::ProcessScene(
 		}
 	}
 
-	for (const auto &scene_object: scene.textures()) {
+	for (const auto &scene_object: scene.texture_objects()) {
 		textures_.emplace_back(
 			ProcessTextureNode(scene_object));
 	}
 
-	for (const auto &scene_object: scene.repeated_textures()) {
+	for (const auto &scene_object: scene.repeated_texture_objects()) {
 		repeated_textures_.emplace_back(
 			ProcessRepeteadTextureNode(scene_object));
 	}

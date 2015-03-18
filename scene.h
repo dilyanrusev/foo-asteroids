@@ -32,6 +32,26 @@ struct SDL_Renderer;
 
 namespace foo {
 
+struct SceneSceneSpritesheetRegion {
+	std::string name;
+	int x;
+	int y;
+	int width;
+	int height;
+};
+
+struct SceneSpritesheet {
+	std::string id;
+	std::string path;
+	std::string image_path;
+	std::vector<SceneSceneSpritesheetRegion> regions;
+};
+
+struct SceneTexture {
+	std::string id;
+	std::string path;
+};
+
 struct SceneObjectTexture {
 	std::string id;
 	std::string path;
@@ -49,8 +69,10 @@ class Scene {
 	std::string title_;
 	int width_;
 	int height_;
-	std::vector<SceneObjectTexture> textures_;
-	std::vector<SceneObjectRepeatedTexture> repeated_textures_;
+	std::vector<SceneTexture> textures_;
+	std::vector<SceneSpritesheet> spritesheets_;
+	std::vector<SceneObjectTexture> texture_objects_;
+	std::vector<SceneObjectRepeatedTexture> repeated_texture_objects_;
 
 public:
 	Scene();
@@ -68,7 +90,9 @@ public:
 		swap(lhs.width_, rhs.width_);
 		swap(lhs.height_, rhs.height_);
 		swap(lhs.textures_, rhs.textures_);
-		swap(lhs.repeated_textures_, rhs.repeated_textures_);
+		swap(lhs.spritesheets_, rhs.spritesheets_);
+		swap(lhs.texture_objects_, rhs.texture_objects_);
+		swap(lhs.repeated_texture_objects_, rhs.repeated_texture_objects_);
 	}
 
 	void
@@ -87,27 +111,42 @@ public:
 	height() const { return height_; }
 
 	inline const std::vector<SceneObjectTexture>&
-	textures() const { return textures_; }
+	texture_objects() const { return texture_objects_; }
 
 	inline const std::vector<SceneObjectRepeatedTexture>&
-	repeated_textures() const { return repeated_textures_; }
+	repeated_texture_objects() const { return repeated_texture_objects_; }
 
 private:
 	void
 	LoadTextureCommon(
-		const char *scene_file_name,
+		const std::string &prefix,
 		const Json::Value &in,
 		SceneObjectTexture &out) const;
 
 	SceneObjectTexture
 	LoadTexture(
-		const char *scene_file_name,
+		const std::string &prefix,
 		const Json::Value &in) const;
 
 	SceneObjectRepeatedTexture
 	LoadRepeatedTexture(
-		const char *scene_file_name,
+		const std::string &prefix,
 		const Json::Value &in) const;
+
+	void
+	ProcessSceneObjects(
+		const std::string &prefix,
+		const Json::Value &in);
+
+	void
+	ProcessSpritesheets(
+		const std::string &prefix,
+		const Json::Value &in);
+
+	void
+	ProcessTextureAtlasXml(
+		const std::string &prefix,
+		SceneSpritesheet &out) const;
 };
 
 } // namespace foo

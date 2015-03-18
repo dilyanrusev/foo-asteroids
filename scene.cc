@@ -22,6 +22,7 @@ THE SOFTWARE.
 
 #include "scene.h"
 #include "json/json.h"
+#include "tinyxml2.h"
 #include <fstream>
 #include "SDL_log.h"
 
@@ -42,7 +43,9 @@ Scene& Scene::operator=(Scene &&other) {
 		id_.clear();
 		title_.clear();
 		textures_.clear();
-		repeated_textures_.clear();
+		spritesheets_.clear();
+		texture_objects_.clear();
+		repeated_texture_objects_.clear();
 
 		swap(*this, other);
 	}
@@ -55,17 +58,14 @@ void Scene::LoadFromFile(const char *file_name) {
 		"Loading scene from %s...\n",
 		file_name);
 
-	string path(file_name);
-	size_t last_separator = path.find_last_of('\\');
+	string prefix(file_name);
+	auto last_separator = prefix.find_last_of('\\');
 	if (string::npos == last_separator) {
-		last_separator = path.find_last_of('/');
+		last_separator = prefix.find_last_of('/');
 	}
 	if (string::npos != last_separator) {
-		path.erase(last_separator + 1, string::npos);
+		prefix.erase(last_separator + 1, string::npos);
 	}
-
-	textures_.clear();
-	repeated_textures_.clear();
 
 	ifstream in_file(file_name);
 	Json::Value in;
@@ -80,19 +80,138 @@ void Scene::LoadFromFile(const char *file_name) {
 	width_ = in["width"].asInt();
 	height_ = in["height"].asInt();
 
-	const Json::Value &json_objects = in["objects"];
+	const auto &json_spritesheets = in["spritesheets"];
+	ProcessSpritesheets(prefix, json_spritesheets);
+
+	const auto &json_objects = in["objects"];
+	ProcessSceneObjects(prefix, json_objects);
+}
+
+void Scene::ProcessSpritesheets(
+		const string &prefix,
+		const Json::Value &in) {
+	spritesheets_.clear();
+
+	if (in.isNull() || !in.isArray()) {
+		return;
+	}
+
 	for (Json::Value::ArrayIndex i = 0;
-		i < json_objects.size();
+		i < in.size();
 		++i) {
-		const Json::Value &json_object = json_objects[i];
-		const string &type = json_object["type"].asString();
+		const auto &json_object = in[i];
+
+		SceneSpritesheet sheet;
+		sheet.id = json_object["id"].asString();
+		sheet.path = prefix + json_object["path"].asString();
+		ProcessTextureAtlasXml(prefix, sheet);
+	}
+}
+
+void Scene::ProcessTextureAtlasXml(
+		const string &prefix,
+		SceneSpritesheet &out) const {
+	using namespace tinyxml2;
+
+	out.regions.clear();
+	XMLDocument doc;
+	XMLError error;
+
+	error = doc.LoadFile(out.path.c_str());
+	if (error != XML_NO_ERROR) {
+		SDL_LogError(
+			SDL_LOG_CATEGORY_SYSTEM,
+			"Failed to load atlas %s: %d\n",
+			out.path.c_str(),
+			error);
+		throw runtime_error("Failed to load atlas file");
+	}
+
+	XMLElement *root = doc.RootElement();
+	if (!root) {
+		throw runtime_error("Atlas file has no root XML element");
+	}
+
+	const char *raw_path = root->Attribute("imagePath");
+	if (!raw_path) {
+		throw runtime_error("Failed to get TextureAtlas.imagePath");
+	}
+
+	out.image_path = prefix + string(raw_path);
+
+	for (XMLElement *current = root->FirstChildElement("SubTexture");
+			current;
+			current = current->NextSiblingElement("SubTexture")) {
+		SceneSceneSpritesheetRegion region;
+
+		const char *raw_name = current->Attribute("name");
+		if (!raw_name) {
+			throw runtime_error("Failed to get SubTexture.name");
+		}
+		region.name = raw_name;
+
+		if (current->QueryAttribute("x", &region.x)
+				!= XML_NO_ERROR) {
+			SDL_LogError(
+				SDL_LOG_CATEGORY_SYSTEM,
+				"Failed on element %s\n",
+				raw_name);
+			throw runtime_error("Failed to get SubTexture.x");
+		}
+
+		if (current->QueryAttribute("y", &region.y)
+				!= XML_NO_ERROR) {
+			SDL_LogError(
+				SDL_LOG_CATEGORY_SYSTEM,
+				"Failed on element %s\n",
+				raw_name);
+			throw runtime_error("Failed to get SubTexture.y");
+		}
+
+		if (current->QueryAttribute("width", &region.width)
+				!= XML_NO_ERROR) {
+			SDL_LogError(
+				SDL_LOG_CATEGORY_SYSTEM,
+				"Failed on element %s\n",
+				raw_name);
+			throw runtime_error("Failed to get SubTexture.width");
+		}
+
+		if (current->QueryAttribute("height", &region.height)
+				!= XML_NO_ERROR) {
+			SDL_LogError(
+				SDL_LOG_CATEGORY_SYSTEM,
+				"Failed on element %s\n",
+				raw_name);
+			throw runtime_error("Failed to get SubTexture.height");
+		}
+
+		out.regions.emplace_back(move(region));
+	}
+}
+
+void Scene::ProcessSceneObjects(
+		const string &prefix,
+		const Json::Value &in) {
+	texture_objects_.clear();
+	repeated_texture_objects_.clear();
+
+	if (in.isNull() || !in.isArray()) {
+		return;
+	}
+
+	for (Json::Value::ArrayIndex i = 0;
+		i < in.size();
+		++i) {
+		const auto &json_object = in[i];
+		const auto &type = json_object["type"].asString();
 
 		if (type == "texture") {
-			textures_.emplace_back(
-				LoadTexture(path.c_str(), json_object));
+			texture_objects_.emplace_back(
+				LoadTexture(prefix, json_object));
 		} else if (type == "repeated_texture") {
-			repeated_textures_.emplace_back(
-				LoadRepeatedTexture(path.c_str(), json_object));
+			repeated_texture_objects_.emplace_back(
+				LoadRepeatedTexture(prefix, json_object));
 		}
 		else {
 			SDL_LogWarn(
@@ -105,7 +224,7 @@ void Scene::LoadFromFile(const char *file_name) {
 }
 
 void Scene::LoadTextureCommon(
-		const char *scene_file_name,
+		const string &prefix,
 		const Json::Value &in,
 		SceneObjectTexture &out) const {
 	const Json::Value &json_id = in["id"];
@@ -113,37 +232,37 @@ void Scene::LoadTextureCommon(
 		out.id = json_id.asString();
 	}
 
-	out.path = string(scene_file_name) + in["path"].asString();
+	out.path = prefix + in["path"].asString();
 
-	const Json::Value &json_pos = in["position"];
+	const auto &json_pos = in["position"];
 	out.x = json_pos[0].asInt();
 	out.y = json_pos[1].asInt();
 }
 
 SceneObjectTexture
 Scene::LoadTexture(
-		const char *scene_file_name,
+		const string &prefix,
 		const Json::Value &in) const {
 	SDL_LogInfo(SDL_LOG_CATEGORY_SYSTEM, "Loading texture...\n");
 
 	SceneObjectTexture out;
 
-	LoadTextureCommon(scene_file_name, in, out);
+	LoadTextureCommon(prefix, in, out);
 
 	return move(out);
 }
 
 SceneObjectRepeatedTexture
 Scene::LoadRepeatedTexture(
-		const char *scene_file_name,
+		const string &prefix,
 		const Json::Value &in) const {
 	SDL_LogInfo(SDL_LOG_CATEGORY_SYSTEM, "Loading repeated texture...\n");
 
 	SceneObjectRepeatedTexture out;
 
-	LoadTextureCommon(scene_file_name, in, out);
+	LoadTextureCommon(prefix, in, out);
 
-	const Json::Value &json_repeat = in["repeat"];
+	const auto &json_repeat = in["repeat"];
 	out.repeat_x = json_repeat[0].asInt();
 	out.repeat_y = json_repeat[1].asInt();
 

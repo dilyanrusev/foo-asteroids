@@ -3,20 +3,23 @@
 	"width": 768,
 	"height": 512,
 	"title": "Foo Asteroids",
+	"spritesheets": [
+		{
+			"id": "sheet",
+			"path": "sheet.xml"
+		}
+	],
 	"textures": [
 		{
 			"id": "background",
 			"path": "background/darkPurple.png"
-		},
-		{
-			"id": "sheet",
-			"atlas": "sheet.json"
 		}
 	],
 	"objects": [
 		{
 			"type": "repeated_texture",
 			"id": "background",
+			"texture": "background",
 			"path": "background/darkPurple.png",
 			"position": [0, 0],
 			"repeat": [3, 2]
