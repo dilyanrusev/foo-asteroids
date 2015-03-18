@@ -134,10 +134,14 @@ private:
 		SceneObject &out) const;
 
 	std::unique_ptr<SceneComponentTexture>
-	ProcessTextureComponent(const Json::Value &in) const;
+	ProcessTextureComponent(
+		const SceneObject &object,
+		const Json::Value &in) const;
 
 	std::unique_ptr<SceneComponentTextureRepeat>
-	ProcessTextureRepeatComponent(const Json::Value &in) const;
+	ProcessTextureRepeatComponent(
+		const SceneObject &object,
+		const Json::Value &in) const;
 
 	void
 	ProcessSpritesheets(

@@ -24,6 +24,7 @@ THE SOFTWARE.
 #include "json/json.h"
 #include "tinyxml2.h"
 #include <fstream>
+#include <memory>
 #include "SDL_log.h"
 
 using namespace std;
@@ -304,7 +305,8 @@ void Scene::ProcessObjectComponents(
 				continue;
 			}
 
-			out.texture = ProcessTextureComponent(json_object);
+			out.texture = ProcessTextureComponent(
+				out, json_object);
 		} else if (type == "texture_repeat") {
 			if (out.texture_repeat) {
 				SDL_LogWarn(
@@ -314,7 +316,8 @@ void Scene::ProcessObjectComponents(
 				continue;
 			}
 
-			out.texture_repeat = ProcessTextureRepeatComponent(json_object);
+			out.texture_repeat = ProcessTextureRepeatComponent(
+				out, json_object);
 		} else {
 			SDL_LogWarn(
 				SDL_LOG_CATEGORY_SYSTEM,
@@ -323,6 +326,51 @@ void Scene::ProcessObjectComponents(
 				out.id.c_str());
 		}
 	}
+}
+
+unique_ptr<SceneComponentTexture>
+Scene::ProcessTextureComponent(
+		const SceneObject &object,
+		const Json::Value &in) const {
+	const auto &json_texture_id = in["texture_id"];
+	if (json_texture_id.isNull() || !json_texture_id.isString()) {
+		SDL_LogWarn(
+			SDL_LOG_CATEGORY_SYSTEM,
+			"Missing texture_id for texture component "
+			"in %s\n",
+			object.id.c_str());
+		return nullptr;
+	}
+
+	auto ptr = unique_ptr<SceneComponentTexture>(
+		new SceneComponentTexture);
+	ptr->texture_id = json_texture_id.asString();
+	return move(ptr);
+}
+
+unique_ptr<SceneComponentTextureRepeat>
+Scene::ProcessTextureRepeatComponent(
+		const SceneObject &object,
+		const Json::Value &in) const {
+	const auto &json_repeat = in["repeat"];
+	if (json_repeat.isNull()
+		|| !json_repeat.isArray()
+		|| json_repeat.size() != 2
+		|| !json_repeat[0].isInt()
+		|| !json_repeat[1].isInt()) {
+		SDL_LogWarn(
+			SDL_LOG_CATEGORY_SYSTEM,
+			"Missing or malformated repeat texture_repeat "
+			"comonent in %s\n",
+			object.id.c_str());
+		return nullptr;
+	}
+
+	auto ptr = unique_ptr<SceneComponentTextureRepeat>(
+		new SceneComponentTextureRepeat);
+	ptr->repeat_x = json_repeat[0].asInt();
+	ptr->repeat_y = json_repeat[1].asInt();
+	return move(ptr);
 }
 
 } // namespace foo
