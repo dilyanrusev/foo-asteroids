@@ -196,8 +196,8 @@ void Scene::ProcessTextureAtlasXml(
 
 	SDL_LogInfo(
 		SDL_LOG_CATEGORY_SYSTEM,
-		"Processed %d SubTexture-s.\n",
-		out.regions.size());
+		"Processed %lu SubTexture-s.\n",
+		static_cast<unsigned long>(out.regions.size()));
 }
 
 void Scene::ProcessSceneObjects(
