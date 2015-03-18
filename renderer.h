@@ -31,18 +31,9 @@ THE SOFTWARE.
 #include <utility>
 
 struct SDL_Renderer;
+struct SDL_Texture;
 
 namespace foo {
-
-struct TextureNode {
-	SDL_Rect destination;
-	TexturePtr texture;
-};
-
-struct RepeatedTextureNode : public TextureNode {
-	int repeat_x;
-	int repeat_y;
-};
 
 class RenderSystem {
 	struct SdlApiTraits {
@@ -53,45 +44,44 @@ class RenderSystem {
 		void Create(int flags);
 		void Destroy();
 	};
+	struct SimpleRender {
+		SDL_Rect destination;
+		SDL_Rect clip;
+	};
+	struct RepeatingRender : public SimpleRender {
+		int repeat_x;
+		int repeat_y;
+	};
+	struct Node {
+		TexturePtr texture;
+		std::vector<SimpleRender> simple_renders;
+		std::vector<RepeatingRender> repeating_renders;
+	};
 
 	Handle<SdlApiTraits> sdl_api_;
 	Handle<SdlImageApiTraits> sdl_image_api_;
 	WindowPtr window_;
 	RendererPtr renderer_;
-	std::vector<TextureNode> textures_;
-	std::vector<RepeatedTextureNode> repeated_textures_;
+	std::vector<Node> nodes_;
 
 public:
 	RenderSystem();
 	RenderSystem(const RenderSystem&) = delete;
-	RenderSystem(RenderSystem &&other);
+	RenderSystem(RenderSystem&&) = delete;
 	~RenderSystem();
 
 	RenderSystem& operator=(const RenderSystem&) = delete;
-	RenderSystem& operator=(RenderSystem &&other);
-	friend void swap(RenderSystem &lhs, RenderSystem &rhs) {
-		using std::swap;
-		swap(lhs.textures_, rhs.textures_);
-		swap(lhs.repeated_textures_, rhs.repeated_textures_);
-	}
+	RenderSystem& operator=(RenderSystem&&) = delete;
 
 	void Initialize();
 	void ProcessScene(const Scene &scene);
 	void Update(float elapsed_milliseconds) const;
 
 private:
-	void
-	ProcessSceneNodeCommon(
-		TextureNode &node,
-	    const SceneObjectTexture &scene_object) const;
-
-	TextureNode
-	ProcessTextureNode(
-		const SceneObjectTexture &scene_object) const;
-
-	RepeatedTextureNode
-	ProcessRepeteadTextureNode(
-		const SceneObjectRepeatedTexture &scene_object) const;
+	void UpdateWindowFromScene(const Scene &scene);
+	void CreateWindowFromScene(const Scene &scene);
+	void CreateRendererFromScene(const Scene &scene);
+	void UpdateNodesFromScene(const Scene &scene);
 };
 
 } // namespace foo
