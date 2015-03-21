@@ -32,7 +32,7 @@
 		},
 		{
 			"id": "ship",
-			"position": [10, 10],
+			"position": [334, 427],
 			"components": [
 				{
 					"type": "texture",
