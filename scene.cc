@@ -132,6 +132,8 @@ void Scene::ProcessSpritesheets(
 		sheet.id = json_object["id"].asString();
 		sheet.path = prefix + json_object["path"].asString();
 		ProcessTextureAtlasXml(prefix, sheet);
+
+		spritesheets_.emplace_back(move(sheet));
 	}
 }
 
