@@ -23,6 +23,7 @@ THE SOFTWARE.
 #include "renderer.h"
 #include "SDL.h"
 #include "SDL_image.h"
+#include <algorithm>
 
 using namespace std;
 
@@ -61,11 +62,49 @@ void RenderSystem::ProcessScene(
 void RenderSystem::UpdateNodesFromScene(const Scene &scene) {
 	nodes_.clear();
 
-	/*
+    map<string, Node> id_to_node;
+
 	for (const auto &scene_object: scene.objects()) {
-		// TODO
+		if (!scene_object.texture) continue;
+
+        const auto &texture_id = scene_object.texture->texture_id;
+        auto positon_separator = texture_id.find(':');
+        if (string::npos == positon_separator) {
+            ProcessReferenceToTexture(
+                scene,
+                scene_object,
+                id_to_node);
+        } else {
+            ProcessReferenceToSpritesheet(
+                scene,
+                scene_object,
+                positon_separator,
+                id_to_node);
+        }
 	}
-	*/
+
+    while (!id_to_node.empty()) {
+        auto map_it = begin(id_to_node);
+        nodes_.emplace_back(move(map_it->second));
+        id_to_node.erase(map_it);
+    }
+}
+
+void
+RenderSystem::ProcessReferenceToTexture(
+        const Scene &scene,
+        const SceneObject &scene_object,
+        std::map<std::string, Node> &id_to_node) const {
+
+}
+
+void
+RenderSystem::ProcessReferenceToSpritesheet(
+        const Scene &scene,
+        const SceneObject &scene_object,
+        std::string::size_type position_separator,
+        std::map<std::string, Node> &id_to_node) const {
+
 }
 
 void RenderSystem::CreateRendererFromScene(const Scene &scene) {
@@ -122,41 +161,38 @@ void RenderSystem::UpdateWindowFromScene(const Scene &scene) {
 		SDL_WINDOWPOS_CENTERED);
 }
 
-/*
-void
-RenderSystem::ProcessSceneNodeCommon(
-		TextureNode &node,
-	    const SceneObjectTexture &scene_object) const {
-	SDL_LogInfo(
-		SDL_LOG_CATEGORY_RENDER,
-		"Loading %s...\n",
-		scene_object.path.c_str());
-	SurfacePtr cpu_mem(IMG_Load(scene_object.path.c_str()));
-	if (!cpu_mem) {
-		auto error_message = IMG_GetError();
-		SDL_LogError(
-			SDL_LOG_CATEGORY_RENDER,
-			"Failed to load image: %s\n",
-			error_message);
-		throw runtime_error(error_message);
-	}
+RenderSystem::Node RenderSystem::LoadNode(const std::string &path) const {
+    SDL_LogInfo(
+        SDL_LOG_CATEGORY_RENDER,
+        "Loading %s...\n",
+        path.c_str());
 
-	node.destination.x = scene_object.x;
-	node.destination.y = scene_object.y;
-	node.destination.w = cpu_mem->w;
-	node.destination.h = cpu_mem->h;
-	node.texture = TexturePtr(SDL_CreateTextureFromSurface(
-		renderer_.get(), cpu_mem.get()));
-	if (!node.texture) {
-		auto error_message = SDL_GetError();
-		SDL_LogError(
-			SDL_LOG_CATEGORY_RENDER,
-			"Failed to create texture: %s\n",
-			error_message);
-		throw runtime_error(error_message);
-	}
+    SurfacePtr cpu_mem(IMG_Load(path.c_str()));
+    if (!cpu_mem) {
+        auto error_message = IMG_GetError();
+        SDL_LogError(
+            SDL_LOG_CATEGORY_RENDER,
+            "Failed to load image: %s\n",
+            error_message);
+        throw runtime_error(error_message);
+    }
+
+    Node node;
+    node.width = cpu_mem->w;
+    node.height = cpu_mem->h;
+    node.texture = TexturePtr(SDL_CreateTextureFromSurface(
+        renderer_.get(), cpu_mem.get()));
+    if (!node.texture) {
+        auto error_message = SDL_GetError();
+        SDL_LogError(
+            SDL_LOG_CATEGORY_RENDER,
+            "Failed to create texture: %s\n",
+            error_message);
+        throw runtime_error(error_message);
+    }
+
+    return move(node);
 }
-*/
 
 void RenderSystem::Update(float /*elapsed_milliseconds*/) const {
 	SDL_RenderClear(renderer_.get());

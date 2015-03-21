@@ -29,6 +29,7 @@ THE SOFTWARE.
 #include "SDL_rect.h"
 #include <vector>
 #include <utility>
+#include <map>
 
 struct SDL_Renderer;
 struct SDL_Texture;
@@ -54,6 +55,8 @@ class RenderSystem {
 	};
 	struct Node {
 		TexturePtr texture;
+		int width;
+		int height;
 		std::vector<SimpleRender> simple_renders;
 		std::vector<RepeatingRender> repeating_renders;
 	};
@@ -82,6 +85,21 @@ private:
 	void CreateWindowFromScene(const Scene &scene);
 	void CreateRendererFromScene(const Scene &scene);
 	void UpdateNodesFromScene(const Scene &scene);
+
+	Node LoadNode(const std::string &path) const;
+
+	void
+	ProcessReferenceToTexture(
+		const Scene &scene,
+		const SceneObject &scene_object,
+		std::map<std::string, Node> &id_to_node) const;
+
+	void
+	ProcessReferenceToSpritesheet(
+		const Scene &scene,
+		const SceneObject &scene_object,
+		std::string::size_type position_separator,
+		std::map<std::string, Node> &id_to_node) const;
 };
 
 } // namespace foo
