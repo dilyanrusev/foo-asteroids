@@ -77,6 +77,69 @@ void RenderSystem::UpdateNodesFromScene(const Scene &scene) {
             nodes_.emplace_back(move(node));
         }
     }
+
+    for (const auto &scene_spritesheet: scene.spritesheets()) {
+        Node node = LoadNode(scene_spritesheet.image_path);
+        string id_start = scene_spritesheet.id + ":";
+        for (const auto &scene_object: scene.objects()) {
+            ProcessObjectForSpritesheetReferences(
+                scene_object, scene_spritesheet, id_start, node);
+        }
+
+        if (!node.repeating_renders.empty()
+                || !node.simple_renders.empty()) {
+            SDL_LogInfo(SDL_LOG_CATEGORY_RENDER,
+                    "Adding node for %s\n",
+                    scene_spritesheet.id.c_str());
+            nodes_.emplace_back(move(node));
+        }
+    }
+}
+
+void RenderSystem::ProcessObjectForSpritesheetReferences(
+        const SceneObject &scene_object,
+        const SceneSpritesheet &scene_spritesheet,
+        const string &id_start,
+        Node &node) const {
+    if (!scene_object.texture
+        || scene_object.texture->texture_id.find(id_start)
+            != 0) {
+        return;
+    }
+
+    string subtexture =
+        scene_object.texture->texture_id.substr(id_start.size());
+
+    auto iter = find_if(
+        begin(scene_spritesheet.regions),
+        end(scene_spritesheet.regions),
+        [&subtexture](const SceneSceneSpritesheetRegion &r)
+        { return r.name == subtexture; });
+
+    if (end(scene_spritesheet.regions) == iter) {
+        SDL_LogWarn(SDL_LOG_CATEGORY_RENDER,
+            "%s: texture_id=%s. Found spritesheet %s, but"
+            " no sub-region matches %s\n",
+            scene_object.id.c_str(),
+            scene_object.texture->texture_id.c_str(),
+            scene_spritesheet.id.c_str(),
+            subtexture.c_str());
+        return;
+    }
+
+    SimpleRender render;
+    render.destination.x = scene_object.x;
+    render.destination.y = scene_object.y;
+    render.destination.w = iter->width;
+    render.destination.h = iter->height;
+    render.clip.x = iter->x;
+    render.clip.y = iter->y;
+    render.clip.w = iter->width;
+    render.clip.h = iter->width;
+
+    SDL_LogInfo(SDL_LOG_CATEGORY_RENDER,
+        "Creating sprite simple render\n");
+    node.simple_renders.emplace_back(move(render));
 }
 
 void RenderSystem::ProcessObjectForTextureReferences(

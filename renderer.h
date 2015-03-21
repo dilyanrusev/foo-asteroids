@@ -97,6 +97,12 @@ private:
 		const SceneObject &scene_object,
 		const SceneTexture &scene_texture,
 		Node &node) const;
+
+	void ProcessObjectForSpritesheetReferences(
+		const SceneObject &scene_object,
+		const SceneSpritesheet &scene_spritesheet,
+		const std::string &id_start,
+		Node &node) const;
 };
 
 } // namespace foo
