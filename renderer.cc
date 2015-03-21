@@ -62,49 +62,55 @@ void RenderSystem::ProcessScene(
 void RenderSystem::UpdateNodesFromScene(const Scene &scene) {
 	nodes_.clear();
 
-    map<string, Node> id_to_node;
+    for (const auto &scene_texture: scene.textures()) {
+        Node node = LoadNode(scene_texture.path);
+        for (const auto &scene_object: scene.objects()) {
+            if (!scene_object.texture
+                    || scene_object.texture->texture_id
+                        != scene_texture.id) {
+                continue;
+            }
 
-	for (const auto &scene_object: scene.objects()) {
-		if (!scene_object.texture) continue;
+            if (scene_object.texture_repeat) {
+                RepeatingRender render;
+                FillTextureSimple(node, scene_object, render);
+                render.repeat_x = scene_object.texture_repeat->repeat_x;
+                render.repeat_y = scene_object.texture_repeat->repeat_y;
 
-        const auto &texture_id = scene_object.texture->texture_id;
-        auto positon_separator = texture_id.find(':');
-        if (string::npos == positon_separator) {
-            ProcessReferenceToTexture(
-                scene,
-                scene_object,
-                id_to_node);
-        } else {
-            ProcessReferenceToSpritesheet(
-                scene,
-                scene_object,
-                positon_separator,
-                id_to_node);
+                SDL_LogInfo(SDL_LOG_CATEGORY_RENDER,
+                    "Creating texture repeating render\n");
+                node.repeating_renders.emplace_back(move(render));
+            } else {
+                SimpleRender render;
+                FillTextureSimple(node, scene_object, render);
+
+                SDL_LogInfo(SDL_LOG_CATEGORY_RENDER,
+                    "Creating texture simple render\n");
+                node.simple_renders.emplace_back(move(render));
+            }
         }
-	}
 
-    while (!id_to_node.empty()) {
-        auto map_it = begin(id_to_node);
-        nodes_.emplace_back(move(map_it->second));
-        id_to_node.erase(map_it);
+        if (!node.repeating_renders.empty()
+                || !node.simple_renders.empty()) {
+            SDL_LogInfo(SDL_LOG_CATEGORY_RENDER,
+                    "Adding noder\n");
+            nodes_.emplace_back(move(node));
+        }
     }
 }
 
-void
-RenderSystem::ProcessReferenceToTexture(
-        const Scene &scene,
+void RenderSystem::FillTextureSimple(
+        const Node &node,
         const SceneObject &scene_object,
-        std::map<std::string, Node> &id_to_node) const {
-
-}
-
-void
-RenderSystem::ProcessReferenceToSpritesheet(
-        const Scene &scene,
-        const SceneObject &scene_object,
-        std::string::size_type position_separator,
-        std::map<std::string, Node> &id_to_node) const {
-
+        SimpleRender &render) const {
+    render.destination.x = scene_object.x;
+    render.destination.y = scene_object.y;
+    render.destination.w = node.width;
+    render.destination.h = node.height;
+    render.clip.x = 0;
+    render.clip.y = 0;
+    render.clip.w = node.width;
+    render.clip.h = node.height;
 }
 
 void RenderSystem::CreateRendererFromScene(const Scene &scene) {

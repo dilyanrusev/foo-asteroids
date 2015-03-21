@@ -36,7 +36,7 @@
 			"components": [
 				{
 					"type": "texture",
-					"texture_id": "sheet.playerShip1_orange.png"
+					"texture_id": "sheet:playerShip1_orange.png"
 				}
 			]
 		}

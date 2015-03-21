@@ -88,18 +88,10 @@ private:
 
 	Node LoadNode(const std::string &path) const;
 
-	void
-	ProcessReferenceToTexture(
-		const Scene &scene,
+	void FillTextureSimple(
+		const Node &node,
 		const SceneObject &scene_object,
-		std::map<std::string, Node> &id_to_node) const;
-
-	void
-	ProcessReferenceToSpritesheet(
-		const Scene &scene,
-		const SceneObject &scene_object,
-		std::string::size_type position_separator,
-		std::map<std::string, Node> &id_to_node) const;
+		SimpleRender &render) const;
 };
 
 } // namespace foo
