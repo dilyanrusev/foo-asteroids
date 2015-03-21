@@ -92,6 +92,11 @@ private:
 		const Node &node,
 		const SceneObject &scene_object,
 		SimpleRender &render) const;
+
+	void ProcessObjectForTextureReferences(
+		const SceneObject &scene_object,
+		const SceneTexture &scene_texture,
+		Node &node) const;
 };
 
 } // namespace foo

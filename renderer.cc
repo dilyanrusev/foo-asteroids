@@ -65,37 +65,46 @@ void RenderSystem::UpdateNodesFromScene(const Scene &scene) {
     for (const auto &scene_texture: scene.textures()) {
         Node node = LoadNode(scene_texture.path);
         for (const auto &scene_object: scene.objects()) {
-            if (!scene_object.texture
-                    || scene_object.texture->texture_id
-                        != scene_texture.id) {
-                continue;
-            }
-
-            if (scene_object.texture_repeat) {
-                RepeatingRender render;
-                FillTextureSimple(node, scene_object, render);
-                render.repeat_x = scene_object.texture_repeat->repeat_x;
-                render.repeat_y = scene_object.texture_repeat->repeat_y;
-
-                SDL_LogInfo(SDL_LOG_CATEGORY_RENDER,
-                    "Creating texture repeating render\n");
-                node.repeating_renders.emplace_back(move(render));
-            } else {
-                SimpleRender render;
-                FillTextureSimple(node, scene_object, render);
-
-                SDL_LogInfo(SDL_LOG_CATEGORY_RENDER,
-                    "Creating texture simple render\n");
-                node.simple_renders.emplace_back(move(render));
-            }
+            ProcessObjectForTextureReferences(
+                scene_object, scene_texture, node);
         }
 
         if (!node.repeating_renders.empty()
                 || !node.simple_renders.empty()) {
             SDL_LogInfo(SDL_LOG_CATEGORY_RENDER,
-                    "Adding noder\n");
+                    "Adding node for %s\n",
+                    scene_texture.id.c_str());
             nodes_.emplace_back(move(node));
         }
+    }
+}
+
+void RenderSystem::ProcessObjectForTextureReferences(
+        const SceneObject &scene_object,
+        const SceneTexture &scene_texture,
+        Node &node) const {
+    if (!scene_object.texture
+            || scene_object.texture->texture_id
+                != scene_texture.id) {
+        return;
+    }
+
+    if (scene_object.texture_repeat) {
+        RepeatingRender render;
+        FillTextureSimple(node, scene_object, render);
+        render.repeat_x = scene_object.texture_repeat->repeat_x;
+        render.repeat_y = scene_object.texture_repeat->repeat_y;
+
+        SDL_LogInfo(SDL_LOG_CATEGORY_RENDER,
+            "Creating texture repeating render\n");
+        node.repeating_renders.emplace_back(move(render));
+    } else {
+        SimpleRender render;
+        FillTextureSimple(node, scene_object, render);
+
+        SDL_LogInfo(SDL_LOG_CATEGORY_RENDER,
+            "Creating texture simple render\n");
+        node.simple_renders.emplace_back(move(render));
     }
 }
 
