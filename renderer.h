@@ -103,6 +103,12 @@ private:
 		const SceneSpritesheet &scene_spritesheet,
 		const std::string &id_start,
 		Node &node) const;
+
+	void FillSheetSimple(
+		const std::vector<SceneSceneSpritesheetRegion>::const_iterator
+			&iter,
+		const SceneObject &scene_object,
+		SimpleRender &render) const;
 };
 
 } // namespace foo

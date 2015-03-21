@@ -127,7 +127,30 @@ void RenderSystem::ProcessObjectForSpritesheetReferences(
         return;
     }
 
-    SimpleRender render;
+    if (scene_object.texture_repeat) {
+        RepeatingRender render;
+        FillSheetSimple(iter, scene_object, render);
+        render.repeat_x = scene_object.texture_repeat->repeat_x;
+        render.repeat_y = scene_object.texture_repeat->repeat_y;
+
+        SDL_LogInfo(SDL_LOG_CATEGORY_RENDER,
+            "Creating sprite repeating render\n");
+        node.repeating_renders.emplace_back(move(render));
+    } else {
+        SimpleRender render;
+        FillSheetSimple(iter, scene_object, render);
+
+        SDL_LogInfo(SDL_LOG_CATEGORY_RENDER,
+            "Creating sprite simple render\n");
+        node.simple_renders.emplace_back(move(render));
+    }
+}
+
+void RenderSystem::FillSheetSimple(
+        const std::vector<SceneSceneSpritesheetRegion>::const_iterator
+            &iter,
+        const SceneObject &scene_object,
+        SimpleRender &render) const {
     render.destination.x = scene_object.x;
     render.destination.y = scene_object.y;
     render.destination.w = iter->width;
@@ -136,10 +159,6 @@ void RenderSystem::ProcessObjectForSpritesheetReferences(
     render.clip.y = iter->y;
     render.clip.w = iter->width;
     render.clip.h = iter->width;
-
-    SDL_LogInfo(SDL_LOG_CATEGORY_RENDER,
-        "Creating sprite simple render\n");
-    node.simple_renders.emplace_back(move(render));
 }
 
 void RenderSystem::ProcessObjectForTextureReferences(
